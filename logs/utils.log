@@ -1,0 +1,4 @@
+2025-03-03 00:19:00,683 - utils - INFO: Запрос на преобразование файла C:\Users\PC\PycharmProjects\Homework_Bank_widget\data\test_file.json
+2025-03-03 00:19:00,683 - utils - ERROR: Ошибка! Файл не найден
+2025-03-03 00:19:00,784 - utils - INFO: Запрос на преобразование файла C:\Users\PC\PycharmProjects\Homework_Bank_widget\data\operation.json
+2025-03-03 00:19:00,784 - utils - ERROR: Ошибка! Файл не найден
