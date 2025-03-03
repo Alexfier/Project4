@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 # Создание папки logs, если она не существует
 if not os.path.exists('logs'):
@@ -19,6 +19,7 @@ file_handler.setFormatter(file_formatter)
 
 # Добавление обработчика к логгеру
 logger.addHandler(file_handler)
+
 
 def get_mask_card_number(card_number: int) -> str:
     """
