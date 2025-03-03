@@ -1,6 +1,6 @@
 import json
-import os
 import logging
+import os
 
 # Создание папки logs, если она не существует
 if not os.path.exists('logs'):

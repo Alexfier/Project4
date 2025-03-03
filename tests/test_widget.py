@@ -5,7 +5,6 @@ from src.widget import get_date, mask_account_card
 
 # Фикстура для параметризованных тестов
 @pytest.fixture
-
 # Параметризованный тест для функции mask_account_card
 @pytest.mark.parametrize(
     "input_data,expected_result",
