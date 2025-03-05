@@ -1,48 +1,75 @@
+
 import logging
 import os
-from typing import Any, Hashable
+import re
+from typing import Dict, List
 
+from config import LOG_DIR, DATA_DIR
+from config import DATA_DIR
 import pandas as pd
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-rlt_file_path = os.path.join(current_dir, "../logs/read_files.log")
-abs_file_path = os.path.abspath(rlt_file_path)
+# Путь к файлам
+csv_file_path = DATA_DIR / "transactions.csv"
+excel_file_path = DATA_DIR / "transactions.xlsx"  # Путь к Excel файлу
 
-logger = logging.getLogger("read_files")
-file_handler = logging.FileHandler(abs_file_path, "w", encoding="utf-8")
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s: %(message)s")
-file_handler.setFormatter(file_formatter)
-logger.addHandler(file_handler)
-logger.setLevel(logging.DEBUG)
+# Создание папки logs, если она не существует
+logs_dir = DATA_DIR.parent / "logs"
+if not os.path.exists(logs_dir):
+    os.makedirs(logs_dir)
+
+# Настройка логирования
+log_file_path = logs_dir / "transactions.log"
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
-def read_csv_file(file_path: str) -> list[dict[Hashable, Any]]:
-    """Чтение CSV-файла и получение списка транзакций"""
-    logger.info(f"Запрос на чтение CSV-файла {file_path}")
+def read_transactions_from_csv(file_path: str) -> List[Dict]:
+    logger.info(f"Попытка прочитать данные из CSV файла: {file_path}")
+    if not os.path.exists(file_path):
+        logger.error(f"Файл {file_path} не найден.")
+        raise FileNotFoundError(f"Файл {file_path} не найден.")
     try:
-        transactions_df = pd.read_csv(file_path, delimiter=";", encoding="utf-8")
-        result = transactions_df.to_dict(orient="records")
-        logger.info("Список транзакций успешно создан.")
-        return result
-
-    except FileNotFoundError:
-        logger.error("Ошибка! Файл не найден")
-        return []
+        df = pd.read_csv(file_path)
+        transactions = df.to_dict(orient="records")
+        logger.info(f"Успешно считано {len(transactions)} транзакций из файла: {file_path}")
+        return transactions
     except Exception as e:
-        logger.error(f"Произошла ошибка {e}")
-        return []
+        logger.error(f"Ошибка при чтении файла {file_path}: {e}")
+        raise
 
 
-def read_excel_file(file_path: str) -> list[dict[Hashable, Any]]:
-    """Чтение Excel-файла и получение списка транзакций"""
-    logger.info(f"Запрос на чтение Excel-файла {file_path}")
+def read_transactions_from_excel(file_path: str) -> List[Dict]:
+    logger.info(f"Попытка прочитать данные из Excel файла: {file_path}")
+    if not os.path.exists(file_path):
+        logger.error(f"Файл {file_path} не найден.")
+        raise FileNotFoundError(f"Файл {file_path} не найден.")
     try:
-        transactions_df = pd.read_excel(file_path)
-        result = transactions_df.to_dict(orient="records")
-        return result
-    except FileNotFoundError:
-        logger.error("Ошибка! Файл не найден")
-        return []
+        df = pd.read_excel(file_path)
+        transactions = df.to_dict(orient="records")
+        logger.info(f"Успешно считано {len(transactions)} транзакций из файла: {file_path}")
+        return transactions
     except Exception as e:
-        logger.error(f"Произошла ошибка {e}")
-        return []
+        logger.error(f"Ошибка при чтении файла {file_path}: {e}")
+        raise
+
+
+def filter_transactions(transactions: List[Dict], search_string: str) -> List[Dict]:
+    logger.info(f"Попытка фильтрации транзакций по строке: {search_string}")
+    pattern = re.compile(re.escape(search_string), re.IGNORECASE)  # Компилируем шаблон
+    filtered_transactions = [
+        transaction for transaction in transactions if pattern.search(transaction.get("description", ""))
+    ]
+    logger.info(f"Найдено {len(filtered_transactions)} транзакций, соответствующих строке: {search_string}")
+    return filtered_transactions
+
+
+def count_transactions_by_category(transactions: List[Dict], categories: List[str]) -> Dict[str, int]:
+    logger.info("Подсчет транзакций по категориям.")
+    category_count = {category: 0 for category in categories}
+    for transaction in transactions:
+        description = transaction.get("description", "").lower()
+        for category in categories:
+            if category.lower() in description:
+                category_count[category] += 1
+    logger.info(f"Подсчет завершен. Результаты: {category_count}")
+    return category_count

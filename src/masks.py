@@ -1,5 +1,6 @@
-import logging
+
 import os
+import logging
 
 # Создание папки logs, если она не существует
 if not os.path.exists('logs'):
