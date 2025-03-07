@@ -2,6 +2,7 @@
 import json
 import os
 import logging
+from collections import Counter
 
 # Создание папки logs, если она не существует
 if not os.path.exists('logs'):
@@ -41,3 +42,17 @@ def load_transactions(file_path):
         except json.JSONDecodeError as e:
             logger.error(f"Ошибка при декодировании JSON из файла {file_path}: {e}")
             return []  # Если ошибка при декодировании JSON, вернуть пустой список
+
+def count_matches_transactions_by_category(data, categories):
+    # код функции. Реализация должна быть с использованием Counter
+
+
+    if __name__ == '__main__':
+        file_path = os.path.join(DATA_DIR, "operations.json")
+        content = load_transactions(file_path)
+
+        result_1 = count_matches_transactions_by_category(content, ["Перевод организации","Открытие вклада"])
+        result_2 = count_matches_transactions_by_category(content, ["Перевод со счета на счет","Перевод с карты на карту"])
+
+        print(result_1)
+        print(result_2)
