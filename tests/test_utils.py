@@ -1,47 +1,85 @@
+import json
+import os
 import unittest
+from typing import Any, Dict, List
 from unittest.mock import mock_open, patch
 
-from external_api import convert_to_rub
-from utils import load_transactions
+import openpyxl
+
+from src.utils import read_transactions_from_csv, read_transactions_from_json, read_transactions_from_xlsx
 
 
-class TestUtils(unittest.TestCase):
-
-    @patch("builtins.open", new_callable=mock_open, read_data="[]")
-    def test_load_transactions_empty_file(self, mock_file):
-        result = load_transactions("data/operations.json")
-        self.assertEqual(result, [])  # Проверяем, что результат пустой список
-
-    @patch("builtins.open", new_callable=mock_open, read_data='[{"amount": 100, "currency": "USD"}]')
-    def test_load_transactions_valid_file(self, mock_file):
-        result = load_transactions("data/operations.json")
-        self.assertEqual(len(result), 1)  # Проверяем, что загружен один элемент
-        self.assertEqual(result[0]["amount"], 100)  # Проверяем, что сумма равна 100
-
-    @patch("builtins.open", new_callable=mock_open, read_data="not a json")
-    def test_load_transactions_invalid_json(self, mock_file):
-        result = load_transactions("data/operations.json")
-        self.assertEqual(result, [])  # Проверяем, что результат пустой список при некорректном JSON
-
-    @patch("os.path.isfile", return_value=False)
-    def test_load_transactions_file_not_exist(self, mock_isfile):
-        result = load_transactions("data/operations.json")
-        self.assertEqual(result, [])  # Проверяем, что результат пустой список если файл не существует
-
-    @patch("builtins.open", new_callable=mock_open, read_data='{"amount": 100, "currency": "USD"}')
-    def test_load_transactions_not_a_list(self, mock_file):
-        result = load_transactions("data/operations.json")
-        self.assertEqual(result, [])  # Проверяем, что результат пустой список если данные не список
-
-    @patch("requests.get")
-    def test_convert_to_rub(self, mock_get):
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.json.return_value = {"result": 7500}  # Симулируем ответ API
-
-        transaction = {"amount": 100, "currency": "USD"}  # Тестовая транзакция
-        result = convert_to_rub(transaction)
-        self.assertEqual(result, 7500.0)  # Проверяем, что результат конвертации равен 7500
+# Вспомогательная функция для создания временного JSON-файла
+def create_temp_json_file(data: Any, filename: str) -> str:
+    file_path = os.path.join(os.path.dirname(__file__), filename)
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file)
+    return file_path
 
 
-if __name__ == "__main__":
-    unittest.main()  # Запуск тестов
+def test_read_transactions_from_json_success():
+    data: List[Dict[str, Any]] = [{"id": 1, "amount": 100}, {"id": 2, "amount": 200}]
+    file_path = create_temp_json_file(data, 'test_data.json')
+    result = read_transactions_from_json(file_path)
+    assert result == data
+    os.remove(file_path)
+
+
+def test_read_transactions_from_json_file_not_found():
+    result = read_transactions_from_json('non_existing_file.json')
+    assert result == []
+
+
+def test_read_transactions_from_json_invalid_format():
+    # Неверный формат: не список
+    data: Dict[str, int] = {"id": 1, "amount": 100}
+    file_path = create_temp_json_file(data, 'test_data_invalid.json')
+    result = read_transactions_from_json(file_path)
+    assert result == []
+    os.remove(file_path)
+
+
+def test_read_transactions_from_json_empty_list():
+    # Верный формат: пустой список
+    data: List[Dict[str, Any]] = []
+    file_path = create_temp_json_file(data, 'test_data_empty.json')
+    result = read_transactions_from_json(file_path)
+    assert result == data
+    os.remove(file_path)
+
+
+# Импортируем функции, которые необходимо протестировать
+
+
+class TestReadTransactions(unittest.TestCase):
+
+    @patch("builtins.open", new_callable=mock_open, read_data="id,name,amount\n1,Alice,100\n2,Bob,150")
+    @patch("os.path.dirname", return_value="")  # Подмена текущего каталога пустой строкой
+    def test_read_transactions_from_csv(self, mock_dirname, mock_file):
+        expected_result: List[Dict[str, str]] = [
+            {"id": "1", "name": "Alice", "amount": "100"},
+            {"id": "2", "name": "Bob", "amount": "150"},
+        ]
+
+        result = read_transactions_from_csv("transactions.csv")
+        self.assertEqual(result, expected_result)
+
+    @patch("openpyxl.load_workbook")
+    @patch("os.path.dirname", return_value="")  # Подмена текущего каталога пустой строкой
+    def test_read_transactions_from_xlsx(self, mock_dirname, mock_load_workbook):
+        # Создание фиктивной рабочей книги и листа
+        mock_workbook = openpyxl.Workbook()
+        mock_sheet = mock_workbook.active
+        mock_sheet.append(["id", "name", "amount"])
+        mock_sheet.append([1, "Alice", 100])
+        mock_sheet.append([2, "Bob", 150])
+
+        mock_load_workbook.return_value = mock_workbook
+
+        expected_result: List[Dict[str, str]] = [
+            {"id": 1, "name": "Alice", "amount": 100},
+            {"id": 2, "name": "Bob", "amount": 150},
+        ]
+
+        result = read_transactions_from_xlsx("transactions.xlsx")
+        self.assertEqual(result, expected_result)
