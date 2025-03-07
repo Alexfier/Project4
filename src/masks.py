@@ -1,3 +1,4 @@
+
 import os
 import logging
 
@@ -19,6 +20,7 @@ file_handler.setFormatter(file_formatter)
 
 # Добавление обработчика к логгеру
 logger.addHandler(file_handler)
+
 
 def get_mask_card_number(card_number: int) -> str:
     """

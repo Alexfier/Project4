@@ -1,0 +1,13 @@
+2025-03-03 00:22:38,517 - read_files - INFO: Запрос на чтение CSV-файла test_file_path.csv
+2025-03-03 00:22:38,517 - read_files - INFO: Список транзакций успешно создан.
+2025-03-03 00:22:38,518 - read_files - INFO: Запрос на чтение CSV-файла test_file.json
+2025-03-03 00:22:38,518 - read_files - ERROR: Ошибка! Файл не найден
+2025-03-03 00:22:38,518 - read_files - INFO: Запрос на чтение CSV-файла C:\Users\PC\PycharmProjects\Homework_Bank_widget\data\transactions_excel.xlsx
+2025-03-03 00:22:38,519 - read_files - ERROR: Ошибка! Файл не найден
+2025-03-03 00:22:38,520 - read_files - INFO: Запрос на чтение Excel-файла test_file_path.xlsx
+2025-03-03 00:22:38,522 - read_files - INFO: Запрос на чтение Excel-файла test_file.json
+2025-03-03 00:22:38,522 - read_files - ERROR: Ошибка! Файл не найден
+2025-03-03 00:22:38,523 - read_files - INFO: Запрос на чтение Excel-файла C:\Users\PC\PycharmProjects\Homework_Bank_widget\data\operations.json
+2025-03-03 00:22:38,523 - read_files - ERROR: Ошибка! Файл не найден
+2025-03-03 00:22:38,523 - read_files - INFO: Запрос на чтение Excel-файла test_file_path.csv
+2025-03-03 00:22:38,523 - read_files - ERROR: Ошибка! Файл не найден
